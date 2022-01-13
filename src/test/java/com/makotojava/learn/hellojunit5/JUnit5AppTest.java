@@ -1,6 +1,19 @@
 package com.makotojava.learn.hellojunit5;
 
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assumptions.assumingThat;
+
+import java.beans.Transient;
+import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -9,6 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Nested;
 import org.junit.platform.runner.JUnitPlatform;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -29,24 +43,41 @@ import org.slf4j.LoggerFactory;
  */
 public class JUnit5AppTest {
 
-  // Create a JDK Logger here
+  private static final Logger log = LoggerFactory.getLogger(JUnit5AppTest.class);
 
   // Create a fixture for the class under test
+  private App classUnderTest;
 
   // Do something before ANY test is run in this class
+  @BeforeAll
   public static void init() {
+    int x = 5;
   }
 
   // Do something after ALL tests in this class are run
+  @AfterAll
   public static void done() {
+    int y = 6;
   }
 
   // Create an instance of the test class before each @Test method is executed
+  @BeforeEach
+  public void setUp() throws Exception {
+    classUnderTest = new App();
+  }
 
   // Destroy reference to the instance of the test class after each @Test method is executed
+  @AfterEach
+  public void takeDown() throws Exception {
+    classUnderTest = null;
+  }
 
   // Disabled test
+  @Test
+  @Disabled
+  @DisplayName("Disable Test")
   void testNotRun() {
+    //string test = "disabled";
   }
 
   /**
@@ -66,12 +97,16 @@ public class JUnit5AppTest {
    * {@link org.junit.jupiter.api.Assertions#assertAll(org.junit.jupiter.api.function.Executable...) assertAll()}
    * </ol>
    */
+  @Test
+  @DisplayName("Test classUnderTest Add functionality")
   public void testAdd() {
-    //
-    // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see the
-    // buttery smooth javadoc above.)
-    //
-    fail("Test not implemented!");
+    assertNotNull(classUnderTest);
+
+    assertAll(
+      () -> assertEquals(10, classUnderTest.add(new long[]{1,2,3,4})),
+      () -> assertEquals(1064, classUnderTest.add(new long[]{20,934,110})),
+      () -> assertEquals(12, classUnderTest.add(new long[]{2,4,6}))
+    );
   }
 
   /**
@@ -92,7 +127,23 @@ public class JUnit5AppTest {
    * </ol>
    * 
    */
+  @Nested
+  @DisplayName("This class tests only negative numbers")
   class NegativeNumbersTest {
+
+    private App classUnderTest;
+
+    // Create an instance of the test class before each @Test method is executed
+    @BeforeEach
+    public void setUp() throws Exception {
+      classUnderTest = new App();
+    }
+
+    // Destroy reference to the instance of the test class after each @Test method is executed
+    @AfterEach
+    public void takeDown() throws Exception {
+      classUnderTest = null;
+    }
 
     /**
      * testAdd() - Exercises:
@@ -112,12 +163,16 @@ public class JUnit5AppTest {
      * {@link org.junit.jupiter.api.Assertions#assertAll(org.junit.jupiter.api.function.Executable...) assertAll()}
      * </ol>
      */
+    @Test
+    @DisplayName("Test Add functionality with Negative numbers")
     public void testAdd() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+
+      assertAll(
+        () -> assertEquals(-10, classUnderTest.add(new long[]{-1,-2,-3,-4})),
+        () -> assertEquals(-1064, classUnderTest.add(new long[]{-20,-934,-110})),
+        () -> assertEquals(-12, classUnderTest.add(new long[]{-2,-4,-6}))
+      );
     }
   }
 
@@ -130,6 +185,8 @@ public class JUnit5AppTest {
    * </ol>
    * 
    */
+  @Nested
+  @DisplayName("This class tests positive and negative numbers")
   class PositiveAndNegativeNumbersTest {
 
     /**
@@ -150,12 +207,16 @@ public class JUnit5AppTest {
      * {@link org.junit.jupiter.api.Assertions#assertAll(org.junit.jupiter.api.function.Executable...) assertAll()}
      * </ol>
      */
+    @Test
+    @DisplayName("Test Add functionality with Positive and Negative numbers")
     public void testAdd() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+
+      assertAll(
+        () -> assertEquals(2, classUnderTest.add(new long[]{-1,2,-3,4})),
+        () -> assertEquals(804, classUnderTest.add(new long[]{-20,934,-110})),
+        () -> assertEquals(0, classUnderTest.add(new long[]{-2,-4,6}))
+      );
     }
 
     /**
@@ -171,12 +232,14 @@ public class JUnit5AppTest {
      * <li>Ensure the actual sum matches the expected sum.</li>
      * </ol>
      */
+    @Test
+    @DisplayName("Test Add functionality only on Friday")
     public void testAdd_OnlyOnFriday() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+      LocalDateTime ldt = LocalDateTime.now();
+      assumeTrue(ldt.getDayOfWeek().getValue() == 5, "Test skipped... it's not Friday!");
+      assumeTrue(ldt.getDayOfWeek().getValue() == 5);
+      assertEquals(15, classUnderTest.add(new long[]{1, 2, 3, 4, 5}));
     }
 
     /**
@@ -193,12 +256,14 @@ public class JUnit5AppTest {
      * <li>Ensure the actual sum matches the expected sum.</li>
      * </ol>
      */
+    @Test
+    @DisplayName("Test Add functionality only on Friday using lambda")
     public void testAdd_OnlyOnFriday_WithLambda() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+      LocalDateTime ldt = LocalDateTime.now();
+      assumingThat(ldt.getDayOfWeek().getValue() == 5, 
+        () -> 
+        classUnderTest.add(new long[]{1, 2, 3, 4, 5}));
     }
 
   }
@@ -212,6 +277,8 @@ public class JUnit5AppTest {
    * </ol>
    * 
    */
+  @Nested
+  @DisplayName("Test Add with one operand")
   class JUnit5AppSingleOperandTest {
 
     /**
@@ -231,12 +298,14 @@ public class JUnit5AppTest {
      * {@link org.junit.jupiter.api.Assertions#assertAll(org.junit.jupiter.api.function.Executable...) assertAll()}
      * </ol>
      */
+    @Test
+    @DisplayName("Testing add with only one number")
     public void testAdd_NumbersGt0() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+      assertAll(
+        () -> assertEquals(1, classUnderTest.add(new long[]{1})),
+        () -> assertEquals(0, classUnderTest.add(new long[]{0}))
+      );
     }
 
     /**
@@ -256,12 +325,14 @@ public class JUnit5AppTest {
      * {@link org.junit.jupiter.api.Assertions#assertAll(org.junit.jupiter.api.function.Executable...) assertAll()}
      * </ol>
      */
+    @Test
+    @DisplayName("Testing add with only one negative number")
     public void testAdd_NumbersLt0() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+      assertAll(
+        () -> assertEquals(-1, classUnderTest.add(new long[]{-1})),
+        () -> assertEquals(-10, classUnderTest.add(new long[]{-10}))
+      );
     }
   }
 
@@ -274,6 +345,8 @@ public class JUnit5AppTest {
    * </ol>
    * 
    */
+  @Nested
+  @DisplayName("Class that will test no operands")
   class JUnit5AppZeroOperandsTest {
 
     /**
@@ -289,12 +362,11 @@ public class JUnit5AppTest {
      * assertThrows()} method).</li>
      * </ol>
      */
+    @Test
+    @DisplayName("Testing add function with no operands")
     public void testAdd_ZeroOperands_EmptyArgument() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+      assertThrows(IllegalArgumentException.class, () -> assertEquals(-10, classUnderTest.add(new long[]{})));
     }
 
     /**
@@ -311,12 +383,12 @@ public class JUnit5AppTest {
      * <li>The test should fail if the message in the exception is not "Operands argument cannot be null".</li>
      * </ol>
      */
+    @Test
+    @DisplayName("Testing add with null argument passed as array")
     public void testAdd_ZeroOperands_NullArgument() {
-      //
-      // EXERCISE: TODO: ADD CODE HERE (See Javadoc comments for instructions. Use the Javadoc View in Eclipse to see
-      // the buttery smooth javadoc above.)
-      //
-      fail("Test not implemented!");
+      assertNotNull(classUnderTest);
+      Throwable expectedException = assertThrows(IllegalArgumentException.class, () -> classUnderTest.add(null));
+      assertEquals("Operands argument cannot be null", expectedException.getLocalizedMessage());
     }
 
   }
